@@ -1,0 +1,100 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Form Absensi</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+    }
+    #signature-pad {
+      border: 2px solid #000;
+      width: 100%;
+      height: 200px;
+      touch-action: none;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Form Absensi</h2>
+  <form id="absensiForm">
+    <label>Nama:</label><br>
+    <input type="text" name="nama" required><br><br>
+
+    <label>Nomor Telepon:</label><br>
+    <input type="tel" name="telepon" required><br><br>
+
+    <label>Tanda Tangan:</label><br>
+    <canvas id="signature-pad"></canvas><br>
+    <button type="button" onclick="clearSignature()">Hapus Tanda Tangan</button><br><br>
+
+    <input type="hidden" name="signature" id="signatureData">
+    <button type="submit">Kirim</button>
+  </form>
+
+  <script>
+    const canvas = document.getElementById('signature-pad');
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
+
+    canvas.addEventListener('mousedown', startDraw);
+    canvas.addEventListener('mouseup', endDraw);
+    canvas.addEventListener('mousemove', draw);
+
+    canvas.addEventListener('touchstart', startDraw);
+    canvas.addEventListener('touchend', endDraw);
+    canvas.addEventListener('touchmove', draw);
+
+    function startDraw(e) {
+      e.preventDefault();
+      drawing = true;
+      ctx.beginPath();
+      ctx.moveTo(getX(e), getY(e));
+    }
+
+    function endDraw(e) {
+      e.preventDefault();
+      drawing = false;
+    }
+
+    function draw(e) {
+      e.preventDefault();
+      if (!drawing) return;
+      ctx.lineTo(getX(e), getY(e));
+      ctx.stroke();
+    }
+
+    function getX(e) {
+      return (e.clientX || e.touches[0].clientX) - canvas.getBoundingClientRect().left;
+    }
+
+    function getY(e) {
+      return (e.clientY || e.touches[0].clientY) - canvas.getBoundingClientRect().top;
+    }
+
+    function clearSignature() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    document.getElementById('absensiForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const signatureData = canvas.toDataURL();
+      document.getElementById('signatureData').value = signatureData;
+
+      const formData = new FormData(this);
+      fetch('YOUR_WEBAPP_URL_HERE', {
+        method: 'POST',
+        body: formData
+      })
+      .then(() => alert('Absensi terkirim!'))
+      .catch(() => alert('Gagal mengirim absensi.'));
+    });
+  </script>
+</body>
+</html>
